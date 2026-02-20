@@ -6,11 +6,15 @@ import { SITE_TITLE, GITHUB_URL, LINKEDIN_URL, EMAIL } from '../consts';
 <header>
 	<nav>
 		<a href="/" class="wordmark">{SITE_TITLE}</a>
+
+		<!-- Desktop nav links -->
 		<div class="internal-links">
 			<HeaderLink href="/">Home</HeaderLink>
 			<HeaderLink href="/blog">Blog</HeaderLink>
 			<HeaderLink href="/about">About</HeaderLink>
 		</div>
+
+		<!-- Desktop social/action icons -->
 		<div class="social-links">
 			<a href={GITHUB_URL} target="_blank" rel="noopener" aria-label="GitHub">
 				<i class="ph-fill ph-github-logo"></i>
@@ -28,9 +32,44 @@ import { SITE_TITLE, GITHUB_URL, LINKEDIN_URL, EMAIL } from '../consts';
 				<i class="ph-fill ph-person-arms-spread"></i>
 			</button>
 		</div>
+
+		<!-- Mobile right-side controls -->
+		<div class="mobile-controls">
+			<button id="accessibility-btn-mobile" aria-label="Accessibility options">
+				<i class="ph-fill ph-person-arms-spread"></i>
+			</button>
+			<button id="theme-toggle-mobile" aria-label="Toggle dark mode">
+				<i id="theme-icon-mobile" class="ph-fill ph-moon"></i>
+			</button>
+			<button id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+				<i class="ph ph-list"></i>
+			</button>
+		</div>
 	</nav>
+
+	<!-- Mobile drawer -->
+	<div id="mobile-menu" role="dialog" aria-label="Navigation menu">
+		<div class="mobile-nav-links">
+			<a href="/">Home</a>
+			<a href="/blog">Blog</a>
+			<a href="/about">About</a>
+		</div>
+		<div class="mobile-social-links">
+			<a href={GITHUB_URL} target="_blank" rel="noopener" aria-label="GitHub">
+				<i class="ph-fill ph-github-logo"></i>
+			</a>
+			<a href={LINKEDIN_URL} target="_blank" rel="noopener" aria-label="LinkedIn">
+				<i class="ph-fill ph-linkedin-logo"></i>
+			</a>
+			<a href={`mailto:${EMAIL}`} aria-label="Email">
+				<i class="ph-fill ph-envelope-simple"></i>
+			</a>
+		</div>
+	</div>
 </header>
+
 <style>
+	/* ── Base header ─────────────────────────────────────── */
 	header {
 		position: sticky;
 		top: 0;
@@ -47,10 +86,13 @@ import { SITE_TITLE, GITHUB_URL, LINKEDIN_URL, EMAIL } from '../consts';
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		height: 72px;
+		height: 64px;
 		max-width: 900px;
 		margin: 0 auto;
+		gap: 0.5em;
 	}
+
+	/* ── Wordmark ────────────────────────────────────────── */
 	.wordmark {
 		font-size: 1.2rem;
 		font-weight: 700;
@@ -58,41 +100,66 @@ import { SITE_TITLE, GITHUB_URL, LINKEDIN_URL, EMAIL } from '../consts';
 		color: rgb(var(--black));
 		text-decoration: none;
 		white-space: nowrap;
+		flex-shrink: 0;
 	}
+
+	/* ── Desktop nav links ───────────────────────────────── */
 	.internal-links {
 		display: flex;
 		align-items: center;
 		gap: 0.25em;
-		overflow: hidden;
+		flex: 1;
+		justify-content: center;
 	}
+
+	/* ── Desktop social/action icons ─────────────────────── */
 	.social-links {
 		display: flex;
 		align-items: center;
 		gap: 0.1em;
+		flex-shrink: 0;
 	}
 	.social-links a,
 	#theme-toggle,
 	#accessibility-btn {
+		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 42px;
-		height: 42px;
-		border-radius: 6px;
+		width: 40px;
+		height: 40px;
 		color: rgb(var(--gray));
 		text-decoration: none;
-		transition: background 0.15s, color 0.15s;
+		transition: color 0.15s;
+	}
+	.social-links a::after,
+	#theme-toggle::after,
+	#accessibility-btn::after {
+		content: '';
+		position: absolute;
+		bottom: 0;
+		left: 6px;
+		right: 6px;
+		height: 2px;
+		background: rgb(var(--black));
+		transform: scaleX(0);
+		transform-origin: left;
+		transition: transform 0.22s ease;
 	}
 	.social-links a:hover,
 	#theme-toggle:hover,
 	#accessibility-btn:hover {
-		background: rgb(var(--gray-light));
 		color: rgb(var(--black));
+	}
+	.social-links a:hover::after,
+	#theme-toggle:hover::after,
+	#accessibility-btn:hover::after {
+		transform: scaleX(1);
 	}
 	.social-links a i,
 	#theme-toggle i,
 	#accessibility-btn i {
-		font-size: 1.45rem;
+		font-size: 1.4rem;
 	}
 	#theme-toggle,
 	#accessibility-btn {
@@ -101,33 +168,226 @@ import { SITE_TITLE, GITHUB_URL, LINKEDIN_URL, EMAIL } from '../consts';
 		cursor: pointer;
 		padding: 0;
 	}
-	@media (max-width: 600px) {
-		header { padding: 0 1em; }
-		.social-links a { display: none; }
-		.wordmark { font-size: 1.05rem; }
+
+	/* ── Mobile controls (hidden on desktop) ─────────────── */
+	.mobile-controls {
+		display: none;
+		align-items: center;
+		gap: 0.1em;
+		flex-shrink: 0;
 	}
-	@media (max-width: 400px) {
-		nav { height: 58px; }
-		.wordmark { font-size: 0.95rem; }
-		#theme-toggle { width: 34px; height: 34px; }
+	#theme-toggle-mobile,
+	#hamburger,
+	#accessibility-btn-mobile {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		color: rgb(var(--gray));
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 0;
+		transition: color 0.15s;
+	}
+	#theme-toggle-mobile::after,
+	#hamburger::after,
+	#accessibility-btn-mobile::after {
+		content: '';
+		position: absolute;
+		bottom: 0;
+		left: 6px;
+		right: 6px;
+		height: 2px;
+		background: rgb(var(--black));
+		transform: scaleX(0);
+		transform-origin: left;
+		transition: transform 0.22s ease;
+	}
+	#theme-toggle-mobile:hover,
+	#hamburger:hover,
+	#accessibility-btn-mobile:hover {
+		color: rgb(var(--black));
+	}
+	#theme-toggle-mobile:hover::after,
+	#hamburger:hover::after,
+	#accessibility-btn-mobile:hover::after {
+		transform: scaleX(1);
+	}
+	#theme-toggle-mobile i,
+	#hamburger i,
+	#accessibility-btn-mobile i {
+		font-size: 1.4rem;
+	}
+
+	/* ── Mobile drawer ───────────────────────────────────── */
+	#mobile-menu {
+		display: none;
+		flex-direction: column;
+		gap: 0;
+		padding: 0.5em 0 0.75em;
+		border-top: 1px solid rgb(var(--gray-light));
+		max-width: 900px;
+		margin: 0 auto;
+	}
+	#mobile-menu.open {
+		display: flex;
+	}
+	.mobile-nav-links {
+		display: flex;
+		flex-direction: column;
+	}
+	.mobile-nav-links a {
+		padding: 0.65em 0.25em;
+		font-size: 1rem;
+		font-weight: 500;
+		color: rgb(var(--gray-dark));
+		text-decoration: none;
+		border-radius: 6px;
+		transition: background 0.15s, color 0.15s;
+	}
+	.mobile-nav-links a:hover,
+	.mobile-nav-links a[aria-current="page"] {
+		color: rgb(var(--black));
+		background: rgb(var(--gray-light));
+		padding-left: 0.6em;
+	}
+	.mobile-social-links {
+		display: flex;
+		align-items: center;
+		gap: 0.1em;
+		padding-top: 0.5em;
+		border-top: 1px solid rgb(var(--gray-light));
+		margin-top: 0.5em;
+	}
+	.mobile-social-links a {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		color: rgb(var(--gray));
+		text-decoration: none;
+		transition: color 0.15s;
+	}
+	.mobile-social-links a::after {
+		content: '';
+		position: absolute;
+		bottom: 0;
+		left: 6px;
+		right: 6px;
+		height: 2px;
+		background: rgb(var(--black));
+		transform: scaleX(0);
+		transform-origin: left;
+		transition: transform 0.22s ease;
+	}
+	.mobile-social-links a:hover {
+		color: rgb(var(--black));
+	}
+	.mobile-social-links a:hover::after {
+		transform: scaleX(1);
+	}
+	.mobile-social-links a i {
+		font-size: 1.4rem;
+	}
+
+	/* ── Responsive breakpoints ──────────────────────────── */
+
+	/* Tablet: hide social icons, keep nav links */
+	@media (max-width: 720px) {
+		.social-links a[aria-label="GitHub"],
+		.social-links a[aria-label="LinkedIn"],
+		.social-links a[aria-label="Email"] {
+			display: none;
+		}
+	}
+
+	/* Mobile: switch to hamburger menu */
+	@media (max-width: 540px) {
+		header {
+			padding: 0 1em;
+		}
+		.internal-links,
+		.social-links {
+			display: none;
+		}
+		.mobile-controls {
+			display: flex;
+		}
+	}
+
+	/* Hamburger open — rotate icon */
+	#hamburger[aria-expanded="true"] .ph-list::before {
+		content: "\e19b"; /* ph-x icon codepoint */
 	}
 </style>
 
 <script>
-	const toggle = document.getElementById('theme-toggle');
+	/* ── Theme toggle (desktop) ───────────────────────── */
+	const toggle = document.getElementById('theme-toggle') as HTMLButtonElement | null;
 	const icon = document.getElementById('theme-icon');
 
+	/* ── Theme toggle (mobile) ────────────────────────── */
+	const toggleMobile = document.getElementById('theme-toggle-mobile') as HTMLButtonElement | null;
+	const iconMobile = document.getElementById('theme-icon-mobile');
+
 	function setIcon(theme: string) {
-		if (icon) icon.className = theme === 'dark' ? 'ph-fill ph-sun' : 'ph-fill ph-moon';
+		const cls = theme === 'dark' ? 'ph-fill ph-sun' : 'ph-fill ph-moon';
+		if (icon) icon.className = cls;
+		if (iconMobile) iconMobile.className = cls;
 	}
 
-	// Sync icon with current theme on load
 	setIcon(document.documentElement.getAttribute('data-theme') || 'light');
 
-	toggle?.addEventListener('click', () => {
+	function applyThemeToggle() {
 		const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
 		document.documentElement.setAttribute('data-theme', next);
 		localStorage.setItem('theme', next);
 		setIcon(next);
+	}
+
+	toggle?.addEventListener('click', applyThemeToggle);
+	toggleMobile?.addEventListener('click', applyThemeToggle);
+
+	/* ── Hamburger / mobile menu ──────────────────────── */
+	const hamburger = document.getElementById('hamburger') as HTMLButtonElement | null;
+	const mobileMenu = document.getElementById('mobile-menu');
+
+	hamburger?.addEventListener('click', () => {
+		const isOpen = mobileMenu?.classList.toggle('open');
+		hamburger.setAttribute('aria-expanded', String(isOpen));
+		// Swap icon between list and X
+		const menuIcon = hamburger.querySelector('i');
+		if (menuIcon) {
+			menuIcon.className = isOpen ? 'ph-bold ph-x' : 'ph-bold ph-list';
+		}
+	});
+
+	// Close on outside click
+	document.addEventListener('click', (e) => {
+		if (
+			mobileMenu?.classList.contains('open') &&
+			!mobileMenu.contains(e.target as Node) &&
+			!hamburger?.contains(e.target as Node)
+		) {
+			mobileMenu.classList.remove('open');
+			hamburger?.setAttribute('aria-expanded', 'false');
+			const menuIcon = hamburger?.querySelector('i');
+			if (menuIcon) menuIcon.className = 'ph-bold ph-list';
+		}
+	});
+
+	// Close on nav link click
+	mobileMenu?.querySelectorAll('a').forEach((link) => {
+		link.addEventListener('click', () => {
+			mobileMenu.classList.remove('open');
+			hamburger?.setAttribute('aria-expanded', 'false');
+			const menuIcon = hamburger?.querySelector('i');
+			if (menuIcon) menuIcon.className = 'ph-bold ph-list';
+		});
 	});
 </script>
