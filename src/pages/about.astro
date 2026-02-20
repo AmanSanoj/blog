@@ -122,10 +122,10 @@ const certifications = [
 ];
 
 const languages = [
-	{ lang: 'English', level: 'Bilingual' },
-	{ lang: 'Malayalam', level: 'Native' },
-	{ lang: 'Hindi', level: 'Proficient' },
-	{ lang: 'French', level: 'Basic' },
+	{ lang: 'English', level: 'Bilingual', dots: 5 },
+	{ lang: 'Malayalam', level: 'Native', dots: 5 },
+	{ lang: 'Hindi', level: 'Proficient', dots: 4 },
+	{ lang: 'French', level: 'Basic', dots: 2 },
 ];
 ---
 
@@ -176,7 +176,7 @@ const languages = [
 									<strong>{e.role}</strong>
 									<span class="exp-company">
 										&nbsp;—&nbsp;
-										{e.url && <a href={e.url} target="_blank" rel="noopener">{e.company}</a>}
+										{e.url && <a href={e.url} target="_blank" rel="noopener">{e.company} <i class="ph-fill ph-arrow-up-right"></i></a>}
 										{!e.url && e.company}
 									</span>
 								</div>
@@ -203,9 +203,9 @@ const languages = [
 								{p.tech.map(t => <span class="tech-tag">{t}</span>)}
 							</div>
 							<div class="project-links">
-								<a href={p.github} target="_blank" rel="noopener">GitHub</a>
-								{p.live && <a href={p.live} target="_blank" rel="noopener">Live ↗</a>}
-								{p.caseStudy && <a href={p.caseStudy}>Case Study →</a>}
+								<a href={p.github} target="_blank" rel="noopener">GitHub <i class="ph-fill ph-arrow-up-right"></i></a>
+								{p.live && <a href={p.live} target="_blank" rel="noopener">Live <i class="ph-fill ph-arrow-up-right"></i></a>}
+								{p.caseStudy && <a href={p.caseStudy}>Case Study <i class="ph-fill ph-arrow-right"></i></a>}
 							</div>
 						</div>
 					))}
@@ -245,7 +245,7 @@ const languages = [
 							<div class="cert-meta">
 								<span class="cert-issuer">{c.issuer}</span>
 								{c.credentialId && <span class="cert-id">ID: {c.credentialId}</span>}
-								{c.url && <a class="cert-link" href={c.url} target="_blank" rel="noopener">Show credential ↗</a>}
+								{c.url && <a class="cert-link" href={c.url} target="_blank" rel="noopener">Show credential <i class="ph-fill ph-arrow-up-right"></i></a>}
 							</div>
 						</div>
 					))}
@@ -258,8 +258,15 @@ const languages = [
 				<div class="lang-list">
 					{languages.map(l => (
 						<div class="lang-item">
-							<span class="lang-name">{l.lang}</span>
-							<span class="lang-level">{l.level}</span>
+							<div class="lang-info">
+								<span class="lang-name">{l.lang}</span>
+								<span class="lang-level">{l.level}</span>
+							</div>
+							<div class="lang-dots">
+								{Array.from({length: 5}).map((_, i) => (
+									<span class={`lang-dot${i < l.dots ? ' filled' : ''}`}></span>
+								))}
+							</div>
 						</div>
 					))}
 				</div>
@@ -304,7 +311,7 @@ const languages = [
 		color: var(--accent);
 		text-decoration: none;
 	}
-	.contact-links a:hover { text-decoration: underline; }
+	.contact-links a:hover { text-decoration: none; }
 	.contact-links a i { font-size: 1.1rem; }
 
 	/* ── Sections ────────────────────────────────────────── */
@@ -356,7 +363,7 @@ const languages = [
 		text-decoration: none;
 		font-weight: 600;
 	}
-	.exp-company a:hover { text-decoration: underline; }
+	.exp-company a:hover { text-decoration: none; }
 	.exp-meta { font-size: 0.85em; color: rgb(var(--gray)); white-space: nowrap; }
 	.exp-location {
 		margin: 0.2em 0 0;
@@ -413,7 +420,7 @@ const languages = [
 		margin-top: 0.25em;
 	}
 	.project-links a { color: var(--accent); text-decoration: none; }
-	.project-links a:hover { text-decoration: underline; }
+	.project-links a:hover { text-decoration: none; }
 
 	/* ── Education ────────────────────────────────────────── */
 	.edu-list { display: flex; flex-direction: column; gap: 1.2em; }
@@ -472,26 +479,44 @@ const languages = [
 	.cert-issuer { font-size: 0.85em; color: rgb(var(--gray)); }
 	.cert-id { font-size: 0.78em; color: rgb(var(--gray)); font-family: monospace; }
 	.cert-link { font-size: 0.82em; font-weight: 600; color: var(--accent); text-decoration: none; }
-	.cert-link:hover { text-decoration: underline; }
+	.cert-link:hover { text-decoration: none; }
 
 	/* ── Languages ──────────────────────────────────────────── */
 	.lang-list {
 		display: flex;
-		flex-wrap: wrap;
-		gap: 0.6em;
+		flex-direction: column;
+		gap: 0;
 	}
 	.lang-item {
 		display: flex;
-		flex-direction: column;
 		align-items: center;
-		gap: 0.2em;
-		background: rgb(var(--gray-light));
-		border-radius: 8px;
-		padding: 0.6em 1.1em;
-		min-width: 90px;
+		justify-content: space-between;
+		padding: 0.7em 0;
+		border-bottom: 1px solid rgb(var(--gray-light));
 	}
-	.lang-name { font-weight: 600; font-size: 0.9em; color: rgb(var(--black)); }
+	.lang-item:last-child { border-bottom: none; }
+	.lang-info {
+		display: flex;
+		align-items: baseline;
+		gap: 0.75em;
+	}
+	.lang-name { font-weight: 600; font-size: 0.95em; color: rgb(var(--black)); }
 	.lang-level { font-size: 0.78em; color: rgb(var(--gray)); }
+	.lang-dots {
+		display: flex;
+		gap: 5px;
+	}
+	.lang-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: rgb(var(--gray-light));
+		border: 1.5px solid rgb(var(--gray));
+	}
+	.lang-dot.filled {
+		background: var(--accent);
+		border-color: var(--accent);
+	}
 
 	@media (max-width: 600px) {
 		main { padding: 1.5em 1em 3em; }
