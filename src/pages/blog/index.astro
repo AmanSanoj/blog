@@ -90,11 +90,26 @@ const posts = (await getCollection('blog')).sort(
 			@media (max-width: 480px) {
 				main { padding: 1.5em 1em 3em; }
 			}
+			.rss-hint {
+				margin: 0 0 1.5em;
+				font-size: 0.85em;
+			}
+			.rss-hint a {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.3em;
+				color: rgb(var(--gray));
+				text-decoration: none;
+			}
+			.rss-hint a:hover {
+				color: var(--accent);
+			}
 		</style>
 	</head>
 	<body>
 		<Header />
 		<main id="main-content">
+			<p class="rss-hint"><a href="/rss.xml"><i class="ph-fill ph-rss"></i> RSS feed</a></p>
 			<section>
 				<ul>
 					{
