@@ -8,6 +8,10 @@ import cloudflare from "@astrojs/cloudflare";
 // https://astro.build/config
 export default defineConfig({
 	site: "https://example.com",
+	prefetch: {
+		prefetchAll: true,
+		defaultStrategy: "viewport",
+	},
 	integrations: [mdx(), sitemap()],
 	adapter: cloudflare({
 		platformProxy: {
