@@ -158,9 +158,34 @@ import Footer from '../components/Footer.astro';
 				color: rgb(var(--gray));
 				letter-spacing: 0.05em;
 			}
+
+			/* ── God mode toast ───────────────────────────── */
+			#god-toast {
+				position: fixed;
+				bottom: 1.5em;
+				left: 50%;
+				transform: translateX(-50%) translateY(4em);
+				background: var(--accent);
+				color: #fff;
+				font-family: monospace;
+				font-size: 0.78rem;
+				font-weight: 700;
+				letter-spacing: 0.1em;
+				padding: 0.5em 1.2em;
+				border-radius: 6px;
+				box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+				transition: transform 0.3s ease, opacity 0.3s ease;
+				opacity: 0;
+				pointer-events: none;
+				z-index: 9999;
+			}
+			#god-toast.show {
+				transform: translateX(-50%) translateY(0);
+				opacity: 1;
+			}
 		</style>
 	</head>
-	<body>
+	<body data-page="404">
 		<Header />
 		<main id="main-content" tabindex="-1">
 			<p class="code">404</p>
@@ -229,8 +254,30 @@ import Footer from '../components/Footer.astro';
 		</main>
 		<Footer />
 
+		<div id="god-toast">★ GOD MODE</div>
+
 		<script>
-		let _gameFocus: string | null = null; // null until player explicitly activates a game
+		let _gameFocus: string | null = null;
+		let _godMode = false;
+
+		// ── Konami code ────────────────────────────────────────
+		const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','KeyB','KeyA'];
+		let _konamiIdx = 0;
+		document.addEventListener('keydown', e => {
+			if (e.code === KONAMI[_konamiIdx]) {
+				_konamiIdx++;
+				if (_konamiIdx === KONAMI.length) {
+					_konamiIdx = 0;
+					_godMode = !_godMode;
+					const toast = document.getElementById('god-toast')!;
+					toast.textContent = _godMode ? '★ GOD MODE ON' : '★ GOD MODE OFF';
+					toast.classList.add('show');
+					setTimeout(() => toast.classList.remove('show'), 2200);
+				}
+			} else {
+				_konamiIdx = e.code === KONAMI[0] ? 1 : 0;
+			}
+		});
 		// ════════════════════════════════════════════════════════
 		//  GAME 1 — DASH (endless runner)
 		// ════════════════════════════════════════════════════════
@@ -351,7 +398,10 @@ import Footer from '../components/Footer.astro';
 					for (const o of obstacles) o.x -= speed;
 					obstacles = obstacles.filter(o => o.x + o.w > -10);
 					for (const o of obstacles) {
-						if (collides(o)) { state = 'dead'; if (score > highScore) { highScore = score; localStorage.setItem('dash_best', String(highScore)); } showRunnerBtn('PLAY AGAIN'); }
+						if (collides(o)) {
+						if (_godMode) continue;
+						state = 'dead'; if (score > highScore) { highScore = score; localStorage.setItem('dash_best', String(highScore)); } showRunnerBtn('PLAY AGAIN');
+					}
 					}
 				}
 
@@ -473,7 +523,12 @@ import Footer from '../components/Footer.astro';
 				if (dir==='U') h.y--; if (dir==='D') h.y++;
 				if (dir==='L') h.x--; if (dir==='R') h.x++;
 				if (h.x<0||h.x>=COLS||h.y<0||h.y>=ROWS||snake.some(s=>s.x===h.x&&s.y===h.y)) {
-					state = 'dead'; if (score > highScore) { highScore = score; localStorage.setItem('snake_best', String(highScore)); } showSnakeBtn('PLAY AGAIN'); draw(); return;
+					if (_godMode) {
+						h.x = (h.x + COLS) % COLS;
+						h.y = (h.y + ROWS) % ROWS;
+					} else {
+						state = 'dead'; if (score > highScore) { highScore = score; localStorage.setItem('snake_best', String(highScore)); } showSnakeBtn('PLAY AGAIN'); draw(); return;
+					}
 				}
 				snake.unshift(h);
 				if (h.x===food.x && h.y===food.y) {
@@ -704,9 +759,13 @@ import Footer from '../components/Footer.astro';
 
 					// Ball lost
 					if (by - BALL_R > H) {
-						state = 'dead';
-						if (score > highScore) { highScore = score; localStorage.setItem('breakout_best', String(highScore)); }
-						showBreakoutBtn('PLAY AGAIN');
+						if (_godMode) {
+							by = H - BALL_R; vy = -Math.abs(vy);
+						} else {
+							state = 'dead';
+							if (score > highScore) { highScore = score; localStorage.setItem('breakout_best', String(highScore)); }
+							showBreakoutBtn('PLAY AGAIN');
+						}
 					}
 
 					// Brick collisions

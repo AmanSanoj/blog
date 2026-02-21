@@ -185,10 +185,6 @@
 	}
 
 	document.addEventListener('DOMContentLoaded', () => {
-		overlay  = document.getElementById('easter-egg');
-		closeBtn = document.getElementById('ee-close');
-		output   = document.getElementById('ee-output');
-
 		// Console hint for curious devs
 		console.log(
 			'%c👀 oh, you\'re a curious one.',
@@ -198,6 +194,13 @@
 			'%ctry the konami code. you know the one.',
 			'color: #8b949e; font-size: 0.9rem;'
 		);
+
+		// Don't compete with 404 page's own Konami handler
+		if (window.location.pathname === '/404' || document.body.dataset.page === '404') return;
+
+		overlay  = document.getElementById('easter-egg');
+		closeBtn = document.getElementById('ee-close');
+		output   = document.getElementById('ee-output');
 
 		closeBtn?.addEventListener('click', closeEgg);
 
