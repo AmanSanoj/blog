@@ -15,8 +15,10 @@ import Footer from '../components/Footer.astro';
 				justify-content: center;
 				min-height: 60vh;
 				text-align: center;
-				padding: 3em 1.5em;
+				padding: 2em 1.5em 3em;
 			}
+
+			/* ── Hero ───────────────────────────── */
 			.code {
 				font-size: 6rem;
 				font-weight: 700;
@@ -27,7 +29,7 @@ import Footer from '../components/Footer.astro';
 			.message {
 				font-size: 1.4rem;
 				color: rgb(var(--gray));
-				margin: 0.5em 0 1.5em;
+				margin: 0.4em 0 1em;
 			}
 			.home-link {
 				display: inline-block;
@@ -39,9 +41,98 @@ import Footer from '../components/Footer.astro';
 				font-size: 0.95rem;
 				font-weight: 600;
 				transition: background 0.15s;
+				margin-bottom: 2.4em;
 			}
-			.home-link:hover {
-				background: var(--accent-dark);
+			.home-link:hover { background: var(--accent-dark); }
+
+			/* ── Arcade section ─────────────────── */
+			.arcade-section {
+				width: 100%;
+				max-width: 980px;
+			}
+			.arcade-eyebrow {
+				font-size: 0.68rem;
+				letter-spacing: 0.18em;
+				text-transform: uppercase;
+				font-weight: 600;
+				color: rgb(var(--gray));
+				margin: 0 0 0.3em;
+				font-family: monospace;
+			}
+			.arcade-heading {
+				font-size: 1.55rem;
+				font-weight: 700;
+				margin: 0 0 0.2em;
+				color: rgb(var(--gray-dark));
+			}
+			.arcade-sub {
+				font-size: 0.88rem;
+				color: rgb(var(--gray));
+				margin: 0 0 1.4em;
+			}
+
+			/* ── Cards ──────────────────────────── */
+			.arcade-grid {
+				display: flex;
+				flex-direction: column;
+				gap: 1em;
+				align-items: center;
+				width: 100%;
+			}
+			.arcade-card {
+				background: rgb(var(--bg));
+				border-radius: 10px;
+				border: 1.5px solid rgb(var(--border));
+				overflow: hidden;
+				box-shadow: var(--box-shadow);
+				width: 100%;
+				max-width: 600px;
+			}
+			.card-runner {}
+			.card-snake  {}
+
+			.card-marquee {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 0.45em 1em;
+				border-bottom: 1px solid rgb(var(--border));
+			}
+			.card-title {
+				font-family: monospace;
+				font-size: 0.72rem;
+				font-weight: 700;
+				letter-spacing: 0.12em;
+				color: rgb(var(--gray));
+				text-transform: uppercase;
+			}
+			.card-controls {
+				font-family: monospace;
+				font-size: 0.63rem;
+				color: rgb(var(--gray));
+				letter-spacing: 0.03em;
+				opacity: 0.7;
+			}
+
+			#runner-canvas {
+				display: block;
+				width: 100%;
+				cursor: pointer;
+			}
+			#snake-canvas {
+				display: block;
+				width: 100%;
+				cursor: pointer;
+			}
+			.card-hud {
+				display: flex;
+				justify-content: space-between;
+				padding: 0.4em 1em;
+				border-top: 1px solid rgb(var(--border));
+				font-family: monospace;
+				font-size: 0.72rem;
+				color: rgb(var(--gray));
+				letter-spacing: 0.05em;
 			}
 		</style>
 	</head>
@@ -51,7 +142,364 @@ import Footer from '../components/Footer.astro';
 			<p class="code">404</p>
 			<p class="message">Oops — nothing here.</p>
 			<a class="home-link" href="/">Go home</a>
+
+			<div class="arcade-section">
+				<p class="arcade-eyebrow">— secret arcade —</p>
+				<h2 class="arcade-heading">You found it.</h2>
+				<p class="arcade-sub">These games are yours. No quarters needed.</p>
+
+				<div class="arcade-grid">
+					<div class="arcade-card card-runner">
+						<div class="card-marquee">
+							<span class="card-title">DASH</span>
+							<span class="card-controls">SPACE / TAP — jump</span>
+						</div>
+						<canvas id="runner-canvas"></canvas>
+						<div class="card-hud">
+							<span id="runner-score">SCORE 00000</span>
+							<span id="runner-best">BEST 00000</span>
+						</div>
+					</div>
+
+					<div class="arcade-card card-snake">
+						<div class="card-marquee">
+							<span class="card-title">SNAKE</span>
+							<span class="card-controls">ARROWS / WASD — move &nbsp;|&nbsp; TAP — start</span>
+						</div>
+						<canvas id="snake-canvas"></canvas>
+						<div class="card-hud">
+							<span id="snake-score">SCORE 000</span>
+							<span id="snake-best">BEST 000</span>
+						</div>
+					</div>
+				</div>
+			</div>
 		</main>
 		<Footer />
+
+		<script>
+		// ════════════════════════════════════════════════════════
+		//  GAME 1 — DASH (endless runner)
+		// ════════════════════════════════════════════════════════
+		(() => {
+			const canvas = document.getElementById('runner-canvas') as HTMLCanvasElement;
+			const ctx = canvas.getContext('2d')!;
+			const elScore = document.getElementById('runner-score')!;
+			const elBest  = document.getElementById('runner-best')!;
+
+			const LOGICAL_W = 600;
+			const CANVAS_H = 160;
+			const GROUND_Y = CANVAS_H - 28;
+			const P_W = 22, P_H = 28;
+			const GRAVITY = 0.55, JUMP_V = -10.5;
+			const INIT_SPEED = 4.2, SPEED_INC = 0.0008;
+			let dpr = 1, scale = 1;
+
+			function resize() {
+				const rect = canvas.parentElement!.getBoundingClientRect();
+				const displayW = Math.min(rect.width, LOGICAL_W);
+				dpr = window.devicePixelRatio || 1;
+				canvas.width  = displayW * dpr;
+				canvas.height = CANVAS_H * dpr;
+				canvas.style.height = CANVAS_H + 'px';
+				ctx.setTransform(1,0,0,1,0,0);
+				ctx.scale(dpr, dpr);
+				scale = displayW / LOGICAL_W;
+			}
+			window.addEventListener('resize', resize);
+			resize();
+
+			const C = (() => {
+				const s = getComputedStyle(document.documentElement);
+				return {
+					bg:     `rgb(${s.getPropertyValue('--bg').trim()})`,
+					ground: `rgba(${s.getPropertyValue('--gray').trim()},0.2)`,
+					player: '#2383e2',
+					eye:    '#93c5fd',
+					obs:    `rgb(${s.getPropertyValue('--gray-dark').trim()})`,
+					text:   `rgb(${s.getPropertyValue('--gray-dark').trim()})`,
+					sub:    `rgb(${s.getPropertyValue('--gray').trim()})`,
+					over:   `rgba(${s.getPropertyValue('--bg').trim()},0.8)`,
+				};
+			})();
+
+			type Obs = { x: number; w: number; h: number };
+			let px: number, py: number, vy: number, onGround: boolean;
+			let obstacles: Obs[], score: number, highScore = 0, speed: number;
+			let state: 'idle' | 'running' | 'dead', frame: number, lastObs: number, groundOffset: number;
+
+			function reset() {
+				px = 60; py = GROUND_Y - P_H; vy = 0; onGround = true;
+				obstacles = []; score = 0; speed = INIT_SPEED; lastObs = 0; groundOffset = 0;
+			}
+
+			function jump() {
+				if (state === 'idle')  { state = 'running'; reset(); vy = JUMP_V; onGround = false; return; }
+				if (state === 'dead')  { state = 'running'; reset(); return; }
+				if (onGround)          { vy = JUMP_V; onGround = false; }
+			}
+
+			document.addEventListener('keydown', e => {
+				if (e.code === 'Space') { e.preventDefault(); jump(); }
+			});
+			canvas.addEventListener('pointerdown', e => { e.preventDefault(); jump(); });
+
+			function maybeSpawn() {
+				const minGap = Math.max(180, 320 - score * 0.3);
+				if (frame - lastObs < minGap / speed) return;
+				const h = 20 + Math.random() * 22, w = 14 + Math.random() * 10;
+				obstacles.push({ x: LOGICAL_W + 10, w, h });
+				lastObs = frame;
+			}
+
+			function collides(o: Obs) {
+				return px < o.x + o.w && px + P_W > o.x && py < GROUND_Y && py + P_H > GROUND_Y - o.h;
+			}
+
+			function rr(x: number, y: number, w: number, h: number, r: number, fill: string) {
+				ctx.fillStyle = fill;
+				ctx.beginPath();
+				ctx.roundRect(x*scale, y*scale, w*scale, h*scale, r*scale);
+				ctx.fill();
+			}
+
+			function tick() {
+				frame++;
+				const W = LOGICAL_W, H = CANVAS_H;
+				ctx.fillStyle = C.bg;
+				ctx.fillRect(0, 0, W*scale, H*scale);
+
+				// Ground
+				if (state === 'running') groundOffset = (groundOffset + speed) % 30;
+				ctx.strokeStyle = C.ground; ctx.lineWidth = 1.5*scale;
+				ctx.beginPath(); ctx.moveTo(0, GROUND_Y*scale); ctx.lineTo(W*scale, GROUND_Y*scale); ctx.stroke();
+				ctx.lineWidth = 1*scale;
+				for (let x = -groundOffset; x < W; x += 30) {
+					ctx.beginPath(); ctx.moveTo(x*scale, (GROUND_Y+6)*scale); ctx.lineTo((x+14)*scale, (GROUND_Y+6)*scale); ctx.stroke();
+				}
+
+				if (state === 'running') {
+					speed += SPEED_INC; score++;
+					vy += GRAVITY; py += vy;
+					if (py >= GROUND_Y - P_H) { py = GROUND_Y - P_H; vy = 0; onGround = true; }
+					maybeSpawn();
+					for (const o of obstacles) o.x -= speed;
+					obstacles = obstacles.filter(o => o.x + o.w > -10);
+					for (const o of obstacles) {
+						if (collides(o)) { state = 'dead'; if (score > highScore) highScore = score; }
+					}
+				}
+
+				// Player
+				const squish = (state === 'running' && !onGround) ? Math.max(0.8, 1 - Math.abs(vy)*0.025) : 1;
+				const drawH = P_H * squish, drawY = py + (P_H - drawH);
+				rr(px, drawY, P_W, drawH, 5, C.player);
+				ctx.fillStyle = '#fff';
+				ctx.beginPath(); ctx.arc((px+P_W-6)*scale, (drawY+8)*scale, 3*scale, 0, Math.PI*2); ctx.fill();
+				ctx.fillStyle = C.eye;
+				ctx.beginPath(); ctx.arc((px+P_W-5)*scale, (drawY+8)*scale, 1.5*scale, 0, Math.PI*2); ctx.fill();
+
+				// Obstacles
+				for (const o of obstacles) rr(o.x, GROUND_Y-o.h, o.w, o.h, 3, C.obs);
+
+				// DOM HUD
+				elScore.textContent = `SCORE ${String(score).padStart(5,'0')}`;
+				elBest.textContent  = `BEST  ${String(highScore).padStart(5,'0')}`;
+
+				// Overlay
+				ctx.textAlign = 'center';
+				if (state === 'idle') {
+					ctx.font = `600 ${Math.round(13*scale)}px monospace`; ctx.fillStyle = C.text;
+					ctx.fillText('PRESS SPACE OR TAP', (W/2)*scale, (H/2)*scale);
+				}
+				if (state === 'dead') {
+					ctx.fillStyle = C.over; ctx.fillRect(0, 0, W*scale, H*scale);
+					ctx.font = `700 ${Math.round(15*scale)}px monospace`; ctx.fillStyle = C.text;
+					ctx.fillText('GAME OVER', (W/2)*scale, (H/2-10)*scale);
+					ctx.font = `500 ${Math.round(11*scale)}px monospace`; ctx.fillStyle = C.sub;
+					ctx.fillText('SPACE / TAP TO RESTART', (W/2)*scale, (H/2+12)*scale);
+				}
+				requestAnimationFrame(tick);
+			}
+
+			frame = 0; state = 'idle'; reset();
+			requestAnimationFrame(tick);
+		})();
+
+		// ════════════════════════════════════════════════════════
+		//  GAME 2 — SNAKE
+		// ════════════════════════════════════════════════════════
+		(() => {
+			const canvas = document.getElementById('snake-canvas') as HTMLCanvasElement;
+			const ctx = canvas.getContext('2d')!;
+			const elScore = document.getElementById('snake-score')!;
+			const elBest  = document.getElementById('snake-best')!;
+
+			// Fixed grid dimensions — CELL is computed from container width so the
+			// canvas always fills available space and font sizes scale like the runner.
+			const S_COLS = 25, S_ROWS = 12;
+			let CELL = 24, COLS = S_COLS, ROWS = S_ROWS;
+			let W = COLS * CELL, H = ROWS * CELL;
+			let snakeScale = 1;
+
+			const C = (() => {
+				const s = getComputedStyle(document.documentElement);
+				return {
+					bg:     `rgb(${s.getPropertyValue('--bg').trim()})`,
+					grid:   `rgba(${s.getPropertyValue('--gray').trim()},0.1)`,
+					border: `rgb(${s.getPropertyValue('--border').trim()})`,
+					player: '#2383e2',
+					head:   '#93c5fd',
+					food:   '#f97316',
+					text:   `rgb(${s.getPropertyValue('--gray-dark').trim()})`,
+					sub:    `rgb(${s.getPropertyValue('--gray').trim()})`,
+					over:   `rgba(${s.getPropertyValue('--bg').trim()},0.8)`,
+				};
+			})();
+
+			const OPP = { U:'D', D:'U', L:'R', R:'L' } as const;
+			const KEY: Record<string, 'U'|'D'|'L'|'R'> = {
+				ArrowUp:'U', KeyW:'U', ArrowDown:'D', KeyS:'D',
+				ArrowLeft:'L', KeyA:'L', ArrowRight:'R', KeyD:'R',
+			};
+
+			let snake: {x:number,y:number}[], dir: 'U'|'D'|'L'|'R', nextDir: 'U'|'D'|'L'|'R';
+			let food: {x:number,y:number};
+			let score: number, highScore = 0, speed: number;
+			let state: 'idle'|'running'|'dead' = 'idle';
+			let tid: ReturnType<typeof setTimeout> | null = null;
+
+			function rand(n: number) { return Math.floor(Math.random() * n); }
+			function placeFood() {
+				let f: {x:number,y:number};
+				do { f = { x: rand(COLS), y: rand(ROWS) }; }
+				while (snake.some(s => s.x === f.x && s.y === f.y));
+				food = f;
+			}
+			function reset() {
+				const mx = Math.floor(COLS/2), my = Math.floor(ROWS/2);
+				snake = [{ x:mx,y:my },{ x:mx-1,y:my },{ x:mx-2,y:my }];
+				dir = 'R'; nextDir = 'R'; score = 0; speed = 150;
+				placeFood();
+			}
+
+			// Init state before first draw
+			reset();
+
+			function setCanvasSize() {
+				const dpr = window.devicePixelRatio || 1;
+				const containerW = canvas.parentElement!.getBoundingClientRect().width;
+				COLS = S_COLS; ROWS = S_ROWS;
+				CELL = containerW / COLS;
+				W = containerW; H = CELL * ROWS;
+				snakeScale = containerW / 600;
+				canvas.width  = W * dpr;
+				canvas.height = H * dpr;
+				canvas.style.width  = '100%';
+				canvas.style.height = H + 'px';
+				ctx.setTransform(1,0,0,1,0,0);
+				ctx.scale(dpr, dpr);
+			}
+
+			function resize() { setCanvasSize(); draw(); }
+			window.addEventListener('resize', resize);
+			setCanvasSize(); // size first, then draw below after everything is ready
+
+			function restart() {
+				if (tid) { clearTimeout(tid); tid = null; }
+				reset(); state = 'running'; schedule();
+			}
+			function schedule() {
+				tid = setTimeout(() => { step(); if (state === 'running') schedule(); }, speed);
+			}
+			function step() {
+				dir = nextDir;
+				const h = { ...snake[0] };
+				if (dir==='U') h.y--; if (dir==='D') h.y++;
+				if (dir==='L') h.x--; if (dir==='R') h.x++;
+				if (h.x<0||h.x>=COLS||h.y<0||h.y>=ROWS||snake.some(s=>s.x===h.x&&s.y===h.y)) {
+					state = 'dead'; if (score > highScore) highScore = score; draw(); return;
+				}
+				snake.unshift(h);
+				if (h.x===food.x && h.y===food.y) {
+					score++; if (score > highScore) highScore = score;
+					speed = Math.max(65, 150 - score*4);
+					placeFood();
+				} else { snake.pop(); }
+				draw();
+			}
+
+			// Keyboard
+			document.addEventListener('keydown', e => {
+				const d = KEY[e.code];
+				if (!d) return;
+				e.preventDefault();
+				if (state !== 'running') { restart(); return; }
+				if (d !== OPP[dir]) nextDir = d;
+			});
+			canvas.addEventListener('pointerdown', () => { if (state !== 'running') restart(); });
+
+			// Touch swipe
+			let tx = 0, ty = 0;
+			canvas.addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive:true });
+			canvas.addEventListener('touchend', e => {
+				const dx = e.changedTouches[0].clientX - tx;
+				const dy = e.changedTouches[0].clientY - ty;
+				if (Math.abs(dx) < 10 && Math.abs(dy) < 10) { if (state !== 'running') restart(); return; }
+				const d = Math.abs(dx) > Math.abs(dy) ? (dx>0?'R':'L') : (dy>0?'D':'U') as 'U'|'D'|'L'|'R';
+				if (state !== 'running') { restart(); return; }
+				if (d !== OPP[dir]) nextDir = d;
+			}, { passive:true });
+
+			function draw() {
+				ctx.fillStyle = C.bg; ctx.fillRect(0,0,W,H);
+
+				// Grid
+				ctx.strokeStyle = C.grid; ctx.lineWidth = 0.5;
+				for (let i=0;i<=COLS;i++){ctx.beginPath();ctx.moveTo(i*CELL,0);ctx.lineTo(i*CELL,H);ctx.stroke();}
+				for (let j=0;j<=ROWS;j++){ctx.beginPath();ctx.moveTo(0,j*CELL);ctx.lineTo(W,j*CELL);ctx.stroke();}
+
+				if (state === 'idle') {
+					ctx.textAlign = 'center';
+					ctx.font = `600 ${Math.round(13*snakeScale)}px monospace`; ctx.fillStyle = C.text;
+					ctx.fillText('PRESS ARROWS OR TAP', W/2, H/2 - CELL*0.4);
+					ctx.font = `500 ${Math.round(11*snakeScale)}px monospace`; ctx.fillStyle = C.sub;
+					ctx.fillText('WASD works too', W/2, H/2 + CELL*0.8);
+					return;
+				}
+
+				// Food
+				ctx.fillStyle = C.food;
+				ctx.beginPath();
+				ctx.arc(food.x*CELL+CELL/2, food.y*CELL+CELL/2, CELL/2-1.5, 0, Math.PI*2);
+				ctx.fill();
+
+				// Snake body — use C.player (same blue as runner)
+				for (let i=0;i<snake.length;i++) {
+					const s = snake[i];
+					ctx.fillStyle = i===0 ? C.head : C.player;
+					ctx.beginPath();
+					ctx.roundRect(s.x*CELL+1, s.y*CELL+1, CELL-2, CELL-2, i===0?4:2);
+					ctx.fill();
+				}
+
+				// DOM HUD
+				elScore.textContent = `SCORE ${String(score).padStart(5,'0')}`;
+				elBest.textContent  = `BEST  ${String(highScore).padStart(5,'0')}`;
+
+				// Game over overlay — same pattern as runner
+				ctx.textAlign = 'center';
+				if (state === 'dead') {
+					ctx.fillStyle = C.over; ctx.fillRect(0,0,W,H);
+					ctx.font = `700 ${Math.round(15*snakeScale)}px monospace`; ctx.fillStyle = C.text;
+					ctx.fillText('GAME OVER', W/2, H/2 - CELL*0.8);
+					ctx.font = `500 ${Math.round(11*snakeScale)}px monospace`; ctx.fillStyle = C.sub;
+					ctx.fillText('ANY ARROW / TAP TO RETRY', W/2, H/2 + CELL*0.4);
+				}
+			}
+
+			draw(); // initial render
+		})();
+		</script>
 	</body>
 </html>
