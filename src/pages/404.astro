@@ -15,7 +15,7 @@ import Footer from '../components/Footer.astro';
 				justify-content: center;
 				min-height: 60vh;
 				text-align: center;
-				padding: 2em 1.5em 3em;
+				padding: 2em 1rem 3em;
 			}
 
 			/* ── Hero ───────────────────────────── */
@@ -80,7 +80,7 @@ import Footer from '../components/Footer.astro';
 			}
 			.card-title {
 				font-family: monospace;
-				font-size: 0.72rem;
+				font-size: clamp(0.75rem, 3vw, 0.82rem);
 				font-weight: 700;
 				letter-spacing: 0.12em;
 				color: rgb(var(--gray));
@@ -88,7 +88,7 @@ import Footer from '../components/Footer.astro';
 			}
 			.card-controls {
 				font-family: monospace;
-				font-size: 0.63rem;
+				font-size: clamp(0.65rem, 2.5vw, 0.72rem);
 				color: rgb(var(--gray));
 				letter-spacing: 0.03em;
 				opacity: 0.7;
@@ -126,13 +126,13 @@ import Footer from '../components/Footer.astro';
 				padding: 0;
 			}
 			.game-focus-btn .btn-title {
-				font-size: 0.8rem;
+				font-size: clamp(0.85rem, 4vw, 1rem);
 				font-weight: 700;
 				letter-spacing: 0.08em;
 				color: rgb(var(--gray-dark));
 			}
 			.game-focus-btn .btn-sub {
-				font-size: 0.65rem;
+				font-size: clamp(0.7rem, 3vw, 0.78rem);
 				color: rgb(var(--gray));
 				letter-spacing: 0.04em;
 			}
@@ -151,12 +151,20 @@ import Footer from '../components/Footer.astro';
 			.card-hud {
 				display: flex;
 				justify-content: space-between;
-				padding: 0.4em 1em;
+				padding: 0.45em 1em;
 				border-top: 1px solid rgb(var(--border));
 				font-family: monospace;
-				font-size: 0.72rem;
+				font-size: clamp(0.76rem, 3vw, 0.84rem);
 				color: rgb(var(--gray));
 				letter-spacing: 0.05em;
+			}
+
+			/* ── Mobile overrides ─────────────────────── */
+			@media (max-width: 480px) {
+				.arcade-section { padding: 0 0.25rem; }
+				.arcade-card { border-radius: 8px; }
+				.card-marquee { padding: 0.5em 0.75em; }
+				.card-hud { padding: 0.5em 0.75em; }
 			}
 
 			/* ── God mode toast ───────────────────────────── */
@@ -375,14 +383,18 @@ import Footer from '../components/Footer.astro';
 				ctx.fill();
 			}
 
-			function tick() {
-				frame++;
+			let _lastTs = 0;
+			function tick(ts: number = 0) {
+				const dt = _lastTs ? Math.min(ts - _lastTs, 50) : 16.667;
+				const dt60 = dt / 16.667; // 1.0 at 60 fps, 0.5 at 120 fps, etc.
+				_lastTs = ts;
+				frame += dt60;
 				const W = LOGICAL_W, H = CANVAS_H;
 				ctx.fillStyle = C.bg;
 				ctx.fillRect(0, 0, W*scale, H*scale);
 
 				// Ground
-				if (state === 'running') groundOffset = (groundOffset + speed) % 30;
+				if (state === 'running') groundOffset = (groundOffset + speed * dt60) % 30;
 				ctx.strokeStyle = C.ground; ctx.lineWidth = 1.5*scale;
 				ctx.beginPath(); ctx.moveTo(0, GROUND_Y*scale); ctx.lineTo(W*scale, GROUND_Y*scale); ctx.stroke();
 				ctx.lineWidth = 1*scale;
@@ -391,16 +403,17 @@ import Footer from '../components/Footer.astro';
 				}
 
 				if (state === 'running') {
-					speed += SPEED_INC; score++;
-					vy += GRAVITY; py += vy;
+					speed += SPEED_INC * dt60; score += dt60;
+					vy += GRAVITY * dt60; py += vy * dt60;
 					if (py >= GROUND_Y - P_H) { py = GROUND_Y - P_H; vy = 0; onGround = true; }
 					maybeSpawn();
-					for (const o of obstacles) o.x -= speed;
+					for (const o of obstacles) o.x -= speed * dt60;
 					obstacles = obstacles.filter(o => o.x + o.w > -10);
 					for (const o of obstacles) {
 						if (collides(o)) {
 						if (_godMode) continue;
-						state = 'dead'; if (score > highScore) { highScore = score; localStorage.setItem('dash_best', String(highScore)); } showRunnerBtn('PLAY AGAIN');
+						const s = Math.floor(score);
+						state = 'dead'; if (s > highScore) { highScore = s; localStorage.setItem('dash_best', String(highScore)); } showRunnerBtn('PLAY AGAIN');
 					}
 					}
 				}
@@ -418,7 +431,8 @@ import Footer from '../components/Footer.astro';
 				ctx.beginPath(); ctx.arc((px+P_W-5)*scale, (drawY+8)*scale, 1.5*scale, 0, Math.PI*2); ctx.fill();
 
 				// DOM HUD
-				elScore.textContent = `SCORE ${String(score).padStart(5,'0')}`;
+				const displayScore = Math.floor(score);
+				elScore.textContent = `SCORE ${String(displayScore).padStart(5,'0')}`;
 				elBest.textContent  = `BEST  ${String(highScore).padStart(5,'0')}`;
 
 				// Overlay
@@ -471,7 +485,7 @@ import Footer from '../components/Footer.astro';
 			let food: {x:number,y:number};
 			let score: number, speed: number;
 			let highScore = Number(localStorage.getItem('snake_best') ?? 0);
-			let state: 'idle'|'running'|'dead' = 'idle';
+			let state: 'idle'|'running'|'dead'|'won' = 'idle';
 			let tid: ReturnType<typeof setTimeout> | null = null;
 
 			function rand(n: number) { return Math.floor(Math.random() * n); }
@@ -510,9 +524,12 @@ import Footer from '../components/Footer.astro';
 			window.addEventListener('resize', resize);
 			setCanvasSize(); // size first, then draw below after everything is ready
 
-			function restart() {
+			function restart(preserveScore = false) {
+				const savedScore = score;
 				if (tid) { clearTimeout(tid); tid = null; }
-				reset(); state = 'running'; schedule();
+				reset();
+				if (preserveScore) { score = savedScore; speed = Math.max(65, 150 - score * 4); }
+				state = 'running'; schedule();
 			}
 			function schedule() {
 				tid = setTimeout(() => { step(); if (state === 'running') schedule(); }, speed);
@@ -534,6 +551,9 @@ import Footer from '../components/Footer.astro';
 				if (h.x===food.x && h.y===food.y) {
 					score++; if (score > highScore) { highScore = score; localStorage.setItem('snake_best', String(highScore)); }
 					speed = Math.max(65, 150 - score*4);
+					if (snake.length === COLS * ROWS) {
+						state = 'won'; if (tid) { clearTimeout(tid); tid = null; } showSnakeBtn('NEXT ROUND'); draw(); return;
+					}
 					placeFood();
 				} else { snake.pop(); }
 				draw();
@@ -549,7 +569,7 @@ import Footer from '../components/Footer.astro';
 				if (d !== OPP[dir]) nextDir = d;
 			});
 			// Mouse click to start (desktop only — touch uses swipe handler below)
-				canvas.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') return; if (_gameFocus !== 'snake') return; if (state !== 'running') restart(); });
+				canvas.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') return; if (_gameFocus !== 'snake') return; if (state !== 'running') restart(state === 'won'); });
 
 				// Touch swipe: tap = start/restart, swipe = change direction
 				let tx = 0, ty = 0;
@@ -559,11 +579,12 @@ import Footer from '../components/Footer.astro';
 				const snakeBtnTitle = snakeBtn.querySelector('.btn-title') as HTMLElement;
 				function showSnakeBtn(title: string) { snakeBtnTitle.textContent = title; snakeBtn.style.display = ''; snakeBtn.focus(); }
 				snakeBtn.addEventListener('click', () => {
+					const preserve = state === 'won';
 					_gameFocus = 'snake';
 					snakeBtn.style.display = 'none';
-					restart();
+					restart(preserve);
 				});
-				snakeBtn.addEventListener('touchend', e => { e.preventDefault(); _gameFocus = 'snake'; snakeBtn.style.display = 'none'; restart(); });
+				snakeBtn.addEventListener('touchend', e => { e.preventDefault(); const preserve = state === 'won'; _gameFocus = 'snake'; snakeBtn.style.display = 'none'; restart(preserve); });
 			canvas.addEventListener('touchend', e => {
 				if (_gameFocus !== 'snake') return;
 				if (state !== 'running') return;
@@ -695,7 +716,12 @@ import Footer from '../components/Footer.astro';
 			}
 			reset();
 
-			function start() { reset(); state = 'running'; }
+			function start(preserveScore = false) {
+				const savedScore = score;
+				reset();
+				if (preserveScore) score = savedScore;
+				state = 'running';
+			}
 
 			// ── Input ───────────────────────────────────────────
 			let keyLeft = false, keyRight = false;
@@ -723,11 +749,12 @@ import Footer from '../components/Footer.astro';
 			const breakoutBtnTitle = breakoutBtn.querySelector('.btn-title') as HTMLElement;
 			function showBreakoutBtn(title: string) { breakoutBtnTitle.textContent = title; breakoutBtn.style.display = ''; breakoutBtn.focus(); }
 			breakoutBtn.addEventListener('click', () => {
+				const preserve = state === 'won';
 				_gameFocus = 'breakout';
 				breakoutBtn.style.display = 'none';
-				start();
+				start(preserve);
 			});
-			breakoutBtn.addEventListener('touchend', e => { e.preventDefault(); _gameFocus = 'breakout'; breakoutBtn.style.display = 'none'; start(); });
+			breakoutBtn.addEventListener('touchend', e => { e.preventDefault(); const preserve = state === 'won'; _gameFocus = 'breakout'; breakoutBtn.style.display = 'none'; start(preserve); });
 
 			document.addEventListener('keydown', e => {
 				if (_gameFocus !== 'breakout') return;
@@ -740,15 +767,19 @@ import Footer from '../components/Footer.astro';
 			});
 
 			// ── Game loop ────────────────────────────────────────
-			function tick() {
+			let _lastTs = 0;
+			function tick(ts: number = 0) {
+				const dt = _lastTs ? Math.min(ts - _lastTs, 50) : 16.667;
+				const dt60 = dt / 16.667;
+				_lastTs = ts;
 				const W = LOGICAL_W, H = LOGICAL_H;
 
 				if (state === 'running') {
-					if (keyLeft)  pdx -= PADDLE_SPEED;
-					if (keyRight) pdx += PADDLE_SPEED;
+					if (keyLeft)  pdx -= PADDLE_SPEED * dt60;
+					if (keyRight) pdx += PADDLE_SPEED * dt60;
 					pdx = Math.max(PADDLE_W/2, Math.min(W - PADDLE_W/2, pdx));
 
-					bx += vx; by += vy;
+					bx += vx * dt60; by += vy * dt60;
 
 					// Wall bounces
 					if (bx - BALL_R < 0)  { bx = BALL_R;     vx =  Math.abs(vx); }
