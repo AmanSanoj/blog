@@ -2,6 +2,7 @@
 import { defineConfig } from "astro/config";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
+import rehypeExternalLinks from "rehype-external-links";
 
 import cloudflare from "@astrojs/cloudflare";
 
@@ -11,6 +12,11 @@ export default defineConfig({
 	prefetch: {
 		prefetchAll: true,
 		defaultStrategy: "viewport",
+	},
+	markdown: {
+		rehypePlugins: [
+			[rehypeExternalLinks, { target: "_blank", rel: ["noopener", "noreferrer"] }],
+		],
 	},
 	integrations: [mdx(), sitemap()],
 	adapter: cloudflare({
