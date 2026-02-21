@@ -114,15 +114,22 @@ import Footer from '../components/Footer.astro';
 				opacity: 0.7;
 			}
 
-			#runner-canvas {
-				display: block;
-				width: 100%;
-				cursor: pointer;
-			}
+			#runner-canvas,
 			#snake-canvas {
 				display: block;
 				width: 100%;
 				cursor: pointer;
+				touch-action: none;
+				-webkit-user-select: none;
+				user-select: none;
+			}
+
+			/* show keyboard hints on desktop, touch hints on mobile */
+			.ctrl-kbd  { display: inline; }
+			.ctrl-touch { display: none; }
+			@media (pointer: coarse) {
+				.ctrl-kbd  { display: none; }
+				.ctrl-touch { display: inline; }
 			}
 			.card-hud {
 				display: flex;
@@ -152,7 +159,10 @@ import Footer from '../components/Footer.astro';
 					<div class="arcade-card card-runner">
 						<div class="card-marquee">
 							<span class="card-title">DASH</span>
-							<span class="card-controls">SPACE / TAP — jump</span>
+						<span class="card-controls">
+							<span class="ctrl-kbd">SPACE — jump</span>
+							<span class="ctrl-touch">TAP — jump</span>
+						</span>
 						</div>
 						<canvas id="runner-canvas"></canvas>
 						<div class="card-hud">
@@ -164,7 +174,10 @@ import Footer from '../components/Footer.astro';
 					<div class="arcade-card card-snake">
 						<div class="card-marquee">
 							<span class="card-title">SNAKE</span>
-							<span class="card-controls">ARROWS / WASD — move &nbsp;|&nbsp; TAP — start</span>
+						<span class="card-controls">
+							<span class="ctrl-kbd">ARROWS / WASD — move</span>
+							<span class="ctrl-touch">TAP — start &nbsp;|&nbsp; SWIPE — move</span>
+						</span>
 						</div>
 						<canvas id="snake-canvas"></canvas>
 						<div class="card-hud">
@@ -198,13 +211,14 @@ import Footer from '../components/Footer.astro';
 			function resize() {
 				const rect = canvas.parentElement!.getBoundingClientRect();
 				const displayW = Math.min(rect.width, LOGICAL_W);
+				scale = displayW / LOGICAL_W;
+				const displayH = CANVAS_H * scale;
 				dpr = window.devicePixelRatio || 1;
 				canvas.width  = displayW * dpr;
-				canvas.height = CANVAS_H * dpr;
-				canvas.style.height = CANVAS_H + 'px';
+				canvas.height = displayH * dpr;
+				canvas.style.height = displayH + 'px';
 				ctx.setTransform(1,0,0,1,0,0);
 				ctx.scale(dpr, dpr);
-				scale = displayW / LOGICAL_W;
 			}
 			window.addEventListener('resize', resize);
 			resize();
@@ -437,16 +451,17 @@ import Footer from '../components/Footer.astro';
 				if (state !== 'running') { restart(); return; }
 				if (d !== OPP[dir]) nextDir = d;
 			});
-			canvas.addEventListener('pointerdown', () => { if (state !== 'running') restart(); });
+			// Mouse click to start (desktop only — touch uses swipe handler below)
+			canvas.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') return; if (state !== 'running') restart(); });
 
-			// Touch swipe
+			// Touch swipe: tap = start/restart, swipe = change direction
 			let tx = 0, ty = 0;
 			canvas.addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive:true });
 			canvas.addEventListener('touchend', e => {
 				const dx = e.changedTouches[0].clientX - tx;
 				const dy = e.changedTouches[0].clientY - ty;
-				if (Math.abs(dx) < 10 && Math.abs(dy) < 10) { if (state !== 'running') restart(); return; }
-				const d = Math.abs(dx) > Math.abs(dy) ? (dx>0?'R':'L') : (dy>0?'D':'U') as 'U'|'D'|'L'|'R';
+				if (Math.abs(dx) < 20 && Math.abs(dy) < 20) { if (state !== 'running') restart(); return; }
+				const d = (Math.abs(dx) > Math.abs(dy) ? (dx>0?'R':'L') : (dy>0?'D':'U')) as 'U'|'D'|'L'|'R';
 				if (state !== 'running') { restart(); return; }
 				if (d !== OPP[dir]) nextDir = d;
 			}, { passive:true });
