@@ -25,7 +25,8 @@ import { SITE_TITLE, GITHUB_URL, LINKEDIN_URL } from '../consts';
 				<i class="ph-fill ph-linkedin-logo"></i>
 			</a>
 			<button id="theme-toggle" aria-label="Toggle dark mode">
-				<i id="theme-icon" class="ph-fill ph-moon"></i>
+				<i class="theme-icon theme-icon--moon ph-fill ph-moon"></i>
+				<i class="theme-icon theme-icon--sun  ph-fill ph-sun"></i>
 			</button>
 			<button id="accessibility-btn" aria-label="Accessibility options">
 				<i class="ph-fill ph-person-arms-spread"></i>
@@ -38,7 +39,8 @@ import { SITE_TITLE, GITHUB_URL, LINKEDIN_URL } from '../consts';
 				<i class="ph-fill ph-person-arms-spread"></i>
 			</button>
 			<button id="theme-toggle-mobile" aria-label="Toggle dark mode">
-				<i id="theme-icon-mobile" class="ph-fill ph-moon"></i>
+				<i class="theme-icon theme-icon--moon ph-fill ph-moon"></i>
+				<i class="theme-icon theme-icon--sun  ph-fill ph-sun"></i>
 			</button>
 			<button id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
 			<i class="ph-fill ph-list"></i>
@@ -334,6 +336,12 @@ import { SITE_TITLE, GITHUB_URL, LINKEDIN_URL } from '../consts';
 		}
 	}
 
+	/* ── Theme icon CSS toggle (no JS flash) ─────────── */
+	.theme-icon--sun  { display: none; }
+	.theme-icon--moon { display: inline; }
+	:global([data-theme="dark"]) .theme-icon--sun  { display: inline; }
+	:global([data-theme="dark"]) .theme-icon--moon { display: none; }
+
 	/* Hamburger open — rotate icon */
 	#hamburger[aria-expanded="true"] .ph-list::before {
 		content: "\e19b"; /* ph-x icon codepoint */
@@ -341,27 +349,14 @@ import { SITE_TITLE, GITHUB_URL, LINKEDIN_URL } from '../consts';
 </style>
 
 <script>
-	/* ── Theme toggle (desktop) ───────────────────────── */
+	/* ── Theme toggle (desktop + mobile) ─────────────── */
 	const toggle = document.getElementById('theme-toggle') as HTMLButtonElement | null;
-	const icon = document.getElementById('theme-icon');
-
-	/* ── Theme toggle (mobile) ────────────────────────── */
 	const toggleMobile = document.getElementById('theme-toggle-mobile') as HTMLButtonElement | null;
-	const iconMobile = document.getElementById('theme-icon-mobile');
-
-	function setIcon(theme: string) {
-		const cls = theme === 'dark' ? 'ph-fill ph-sun' : 'ph-fill ph-moon';
-		if (icon) icon.className = cls;
-		if (iconMobile) iconMobile.className = cls;
-	}
-
-	setIcon(document.documentElement.getAttribute('data-theme') || 'light');
 
 	function applyThemeToggle() {
 		const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
 		document.documentElement.setAttribute('data-theme', next);
 		localStorage.setItem('theme', next);
-		setIcon(next);
 	}
 
 	toggle?.addEventListener('click', applyThemeToggle);
