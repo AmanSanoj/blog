@@ -3,6 +3,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { GITHUB_URL, LINKEDIN_URL, EMAIL, RESUME_URL } from '../consts';
+import { getCollection } from 'astro:content';
 
 const skills = [
 	'Python', 'JavaScript', 'React.js', 'Node.js',
@@ -22,17 +23,7 @@ const experience = [
 	},
 ];
 
-const projects = [
-	{
-		name: 'GardenX',
-		description: 'AI-powered marketplace enabling schools to commercialize student-grown organic produce. Facilitated 30,000+ AED in sales in 4 months through AI-driven personalized orders and a centralized inventory & order fulfillment platform.',
-		tech: ['AI', 'React.js', 'Node.js'],
-		period: 'Dec 2024 – Mar 2025',
-		github: '#',
-		live: '',
-		caseStudy: '/projects/gardenx',
-	},
-];
+const projects = await getCollection('projects');
 
 // ── Edit this with your real education ─────────────────────────────────────
 const education = [
@@ -196,17 +187,17 @@ const languages = [
 					{projects.map(p => (
 						<div class="project-card">
 							<div class="project-card-header">
-								<h3>{p.name}</h3>
-								{p.period && <span class="project-period">{p.period}</span>}
+								<h3>{p.data.title}</h3>
+								{p.data.period && <span class="project-period">{p.data.period}</span>}
 							</div>
-							<p>{p.description}</p>
+							<p>{p.data.description}</p>
 							<div class="tech-tags">
-								{p.tech.map(t => <span class="tech-tag">{t}</span>)}
+								{p.data.tags.map((t: string) => <span class="tech-tag">{t}</span>)}
 							</div>
 							<div class="project-links">
-								<a href={p.github} target="_blank" rel="noopener">GitHub <i class="ph-fill ph-arrow-up-right"></i></a>
-								{p.live && <a href={p.live} target="_blank" rel="noopener">Live <i class="ph-fill ph-arrow-up-right"></i></a>}
-								{p.caseStudy && <a href={p.caseStudy}>Case Study <i class="ph-fill ph-arrow-right"></i></a>}
+								{p.data.github && <a href={p.data.github} target="_blank" rel="noopener">GitHub <i class="ph-fill ph-arrow-up-right"></i></a>}
+								{p.data.live && <a href={p.data.live} target="_blank" rel="noopener">Live <i class="ph-fill ph-arrow-up-right"></i></a>}
+								<a href={`/projects/${p.id}`}>Read More <i class="ph-fill ph-arrow-right"></i></a>
 							</div>
 						</div>
 					))}
