@@ -80,22 +80,8 @@ const { title, description, period, tags, heroImage, live, github } = Astro.prop
 				flex-direction: column;
 				gap: 0.5em;
 			}
-			.prose :global(.stats-row) { display: flex; flex-wrap: wrap; gap: 1.5em; margin: 0.5em 0 1em; }
-			.prose :global(.stat) {
-				display: flex;
-				flex-direction: column;
-				gap: 0.2em;
-				background: rgb(var(--gray-light));
-				border-radius: 10px;
-				padding: 1em 1.5em;
-				min-width: 140px;
-			}
-			.prose :global(.stat-value) { font-size: 1.4em; font-weight: 700; color: rgb(var(--black)); }
-			.prose :global(.stat-label) { font-size: 0.82em; color: rgb(var(--gray)); }
 			@media (max-width: 600px) {
 				.post-title h1 { font-size: 2em; }
-				.prose :global(.stats-row) { flex-direction: column; }
-				.prose :global(.stat) { min-width: unset; }
 			}
 			@media (max-width: 400px) {
 				.post-title h1 { font-size: 1.7em; }
