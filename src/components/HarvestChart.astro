@@ -1,0 +1,165 @@
+---
+const data = [
+  { year: '2016–17', short: "'16–17", kg: 2500 },
+  { year: '2017–18', short: "'17–18", kg: 4200 },
+  { year: '2018–19', short: "'18–19", kg: 6000 },
+  { year: '2019–20', short: "'19–20", kg: 10600 },
+  { year: '2020–21', short: "'20–21", kg: 15000 },
+  { year: '2021–22', short: "'21–22", kg: 20000 },
+  { year: '2022–23', short: "'22–23", kg: 50000 },
+  { year: '2023–24', short: "'23–24", kg: 100000 },
+];
+
+const max = 100000;
+---
+
+<div class="harvest-chart">
+  <p class="chart-label">Annual Produce Yield (kg)</p>
+  <div class="bars-wrap">
+    <div class="bars">
+      {data.map(d => {
+        const pct = ((d.kg / max) * 100).toFixed(2) + '%';
+        return (
+          <div class="bar-col" style={`--pct: ${pct}`}>
+            <div class="tooltip">{d.kg.toLocaleString()} kg</div>
+            <div class="bar"></div>
+            <span class="year-label">
+              <span class="year-full">{d.year}</span>
+              <span class="year-short">{d.short}</span>
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Light mode defaults */
+  .harvest-chart {
+    --chart-bg: #edf7f1;
+    --chart-label-color: #2a6b4a;
+    --bar-color: #3f8f6b;
+    --bar-hover: #2a7055;
+    --tooltip-bg: #1b3e2e;
+    --tooltip-text: #b2e8cc;
+    --year-color: #3a7a57;
+
+    margin: 1.5em 0 2em;
+    padding: 1.5em 1.5em 0.75em;
+    background: var(--chart-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #c3e6d4;
+  }
+
+  /* Dark mode overrides */
+  :global([data-theme="dark"]) .harvest-chart {
+    --chart-bg: #1b3e2e;
+    --chart-label-color: #7ec8a4;
+    --bar-color: #3f8f6b;
+    --bar-hover: #5ab88a;
+    --tooltip-bg: #0f2419;
+    --tooltip-text: #b2e8cc;
+    --year-color: #7ec8a4;
+    border: none;
+  }
+
+  .chart-label {
+    font-size: 0.8em;
+    font-weight: 600;
+    color: var(--chart-label-color);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 1.25em 0;
+  }
+
+  .bars-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5em;
+    height: 180px;
+    min-width: 360px;
+    position: relative;
+  }
+
+  .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    position: relative;
+    cursor: default;
+  }
+
+  .bar {
+    width: 100%;
+    height: var(--pct);
+    background: var(--bar-color);
+    border-radius: 4px 4px 0 0;
+    transition: background 0.15s ease;
+    transform-origin: bottom;
+  }
+
+  .bar-col:hover .bar {
+    background: var(--bar-hover);
+  }
+
+  .tooltip {
+    position: absolute;
+    bottom: calc(var(--pct) + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--tooltip-bg);
+    color: var(--tooltip-text);
+    font-size: 0.7em;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 0.3em 0.6em;
+    border-radius: 5px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+  }
+
+  .tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: var(--tooltip-bg);
+  }
+
+  .bar-col:hover .tooltip {
+    opacity: 1;
+  }
+
+  .year-label {
+    font-size: 0.62em;
+    color: var(--year-color);
+    margin-top: 0.5em;
+    text-align: center;
+    white-space: nowrap;
+    padding-bottom: 0.5em;
+  }
+
+  .year-short { display: none; }
+  .year-full  { display: inline; }
+
+  @media (max-width: 520px) {
+    .bars-wrap { margin: 0 -0.25em; }
+    .bars { gap: 0.3em; }
+    .year-full  { display: none; }
+    .year-short { display: inline; }
+  }
+</style>
