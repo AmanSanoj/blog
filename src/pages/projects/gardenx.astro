@@ -2,6 +2,8 @@
 import BaseHead from '../../components/BaseHead.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
+
+const heroImage: string | undefined = undefined; // set to '/images/gardenx-hero.png' when ready
 ---
 
 <!doctype html>
@@ -10,7 +12,7 @@ import Footer from '../../components/Footer.astro';
 		<BaseHead
 			title="GardenX — Case Study"
 			description="How I built an AI-powered marketplace enabling schools to commercialize student-grown organic produce."
-			image="/og-home.png"
+			image={heroImage}
 		/>
 	</head>
 	<body>
