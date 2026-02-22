@@ -1,0 +1,212 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+type Props = CollectionEntry<'projects'>['data'];
+
+const { title, description, tagline, period, location, tags, heroImage, live, github } = Astro.props;
+---
+
+<html lang="en">
+	<head>
+		<BaseHead title={`${title} — Aman Sanoj`} description={description} image={heroImage} type="article" author="Aman Sanoj" />
+		<style>
+			main {
+				width: 100%;
+				max-width: 100%;
+				box-sizing: border-box;
+				margin: 0;
+			}
+			.hero-image {
+				width: 100%;
+			}
+			.hero-image img {
+				display: block;
+				margin: 0 auto;
+				border-radius: 12px;
+				box-shadow: var(--box-shadow);
+			}
+			.prose {
+				width: 100%;
+				max-width: 720px;
+				box-sizing: border-box;
+				margin: auto;
+				padding: 1em 1.5em 4em;
+				color: rgb(var(--gray-dark));
+			}
+			.title {
+				margin-bottom: 1em;
+				padding: 1em 0;
+				text-align: center;
+				line-height: 1;
+			}
+			.back-wrap {
+				max-width: 1020px;
+				margin: 0 auto;
+				padding: 1.5em 1.5em 0.75em;
+				box-sizing: border-box;
+			}
+			.back-link {
+				gap: 0.35em;
+				font-size: 0.88em;
+				font-weight: 600;
+				margin-bottom: 1em;
+			}
+			.title h1 { margin: 0 0 0.35em; }
+			.tagline {
+				font-size: 1.05em;
+				color: rgb(var(--gray));
+				margin: 0 0 1em;
+			}
+			.date {
+				margin-bottom: 0.5em;
+				color: rgb(var(--gray));
+			}
+			.tags {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+				gap: 0.5em;
+				margin-bottom: 1em;
+			}
+			.tag {
+				background: rgb(var(--gray-light));
+				color: rgb(var(--gray-dark));
+				padding: 0.25em 0.75em;
+				border-radius: 999px;
+				font-size: 0.82em;
+				font-weight: 500;
+			}
+			.hero-links {
+				display: flex;
+				justify-content: center;
+				gap: 0.75em;
+				flex-wrap: wrap;
+				margin-bottom: 0.5em;
+			}
+			.hero-link {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.35em;
+				font-size: 0.88em;
+				font-weight: 600;
+				padding: 0.4em 1em;
+				border-radius: 6px;
+				text-decoration: none;
+				transition: background 0.15s, color 0.15s;
+			}
+			.hero-link.primary {
+				background: var(--accent);
+				color: #fff;
+			}
+			.hero-link.primary:hover { background: var(--accent-dark); }
+			.hero-link.secondary {
+				border: 1.5px solid rgb(var(--border));
+				color: rgb(var(--gray-dark));
+			}
+			.hero-link.secondary:hover {
+				border-color: var(--accent);
+				color: var(--accent);
+			}
+
+			/* ── Prose content ──────────────────────────────────── */
+			.prose :global(h2) {
+				font-size: 1.15em;
+				font-weight: 700;
+				text-transform: uppercase;
+				letter-spacing: 0.06em;
+				color: rgb(var(--gray));
+				margin: 2em 0 1em;
+				padding-top: 2em;
+				border-top: 1px solid rgb(var(--gray-light));
+			}
+			.prose :global(h2:first-child) {
+				margin-top: 1.5em;
+				padding-top: 1.5em;
+			}
+			.prose :global(p),
+			.prose :global(li) {
+				color: rgb(var(--gray-dark));
+				line-height: 1.7;
+			}
+			.prose :global(ul) {
+				padding-left: 1.25em;
+				margin: 0 0 1em;
+				display: flex;
+				flex-direction: column;
+				gap: 0.5em;
+			}
+
+			/* ── Stats (usable via raw HTML in MDX) ─────────────── */
+			.prose :global(.stats-row) {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 1.5em;
+				margin: 0.5em 0 1em;
+			}
+			.prose :global(.stat) {
+				display: flex;
+				flex-direction: column;
+				gap: 0.2em;
+				background: rgb(var(--gray-light));
+				border-radius: 10px;
+				padding: 1em 1.5em;
+				min-width: 140px;
+			}
+			.prose :global(.stat-value) {
+				font-size: 1.4em;
+				font-weight: 700;
+				color: rgb(var(--black));
+			}
+			.prose :global(.stat-label) {
+				font-size: 0.82em;
+				color: rgb(var(--gray));
+			}
+
+			@media (max-width: 600px) {
+				.prose { padding: 1em 1em 3em; }
+				.title h1 { font-size: 2em; }
+				.prose :global(.stats-row) { flex-direction: column; }
+				.prose :global(.stat) { min-width: unset; }
+			}
+			@media (max-width: 400px) {
+				.title h1 { font-size: 1.7em; }
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main id="main-content" tabindex="-1">
+			<article>
+				<div class="back-wrap">
+					<a href="/projects" class="back-link">
+						<i class="ph-fill ph-arrow-left"></i> All Projects
+					</a>
+				</div>
+				<div class="hero-image">
+					{heroImage && <img width={1020} height={510} src={heroImage} alt="" />}
+				</div>
+				<div class="prose">
+					<div class="title">
+						<div class="date">{period}</div>
+						<h1>{title}</h1>
+						<div class="tags">
+							{tags.map(t => <span class="tag">{t}</span>)}
+						</div>
+						{(live || github) && (
+							<div class="hero-links">
+								{live && <a href={live} target="_blank" rel="noopener" class="hero-link primary"><i class="ph-fill ph-arrow-up-right"></i> Live</a>}
+								{github && <a href={github} target="_blank" rel="noopener" class="hero-link secondary"><i class="ph-fill ph-github-logo"></i> GitHub</a>}
+							</div>
+						)}
+						<hr />
+					</div>
+					<slot />
+				</div>
+			</article>
+		</main>
+		<Footer />
+	</body>
+</html>
