@@ -90,7 +90,8 @@ a:hover {
 .exp-company a,
 .project-links a,
 .cert-link,
-.view-all {
+.view-all,
+.back-link {
 	position: relative;
 	display: inline;
 	color: var(--accent);
@@ -107,7 +108,8 @@ a:hover {
 .exp-company a:hover,
 .project-links a:hover,
 .cert-link:hover,
-.view-all:hover {
+.view-all:hover,
+.back-link:hover {
 	background-size: 100% 100%;
 	color: var(--accent-dark);
 }
