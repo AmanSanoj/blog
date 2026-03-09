@@ -1,8 +1,5 @@
 # Portfolio
-
-A clean Astro-powered portfolio site with projects, posts and a brief personal background.
-
-![Portfolio OpenGraph preview showing site title and background pattern](/public/og-home.png)
+![OG Preview](https://repo-og-generator.vercel.app/portfolio?description=A%20clean,%20content-focused%20portfolio%20template%20built%20with%20Astro.%20Includes%20projects,%20blog%20posts,%20and%20a%20personal%20bio.&url=chaya.qzz.io&scale=2)
 
 This repository contains the source code for my personal portfolio, built with [Astro](https://astro.build) and deployed to Cloudflare Workers.
 
